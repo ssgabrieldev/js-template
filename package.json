@@ -1,0 +1,26 @@
+{
+  "name": "js-template",
+  "version": "1.0.0",
+  "description": "Biblioteca de templates",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ssgabrieldev/js-template.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ssgabrieldev/js-template/issues"
+  },
+  "homepage": "https://github.com/ssgabrieldev/js-template#readme",
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.2"
+  }
+}
