@@ -3,31 +3,35 @@ import { DOMParser } from "xmldom";
 
 import { readFileSync } from "fs";
 
-import { APPLICATION_XML } from "../../consts";
+import { APPLICATION_XML } from "../../../consts";
 
 type TPFilePath = {
   filePath: string
 }
 
 export default class PPTXTemplateFile {
+  private filePath: string;
+
   private jsZip = new JSZip();
   private domParser = new DOMParser();
 
-  public async loadFile({ filePath }: TPFilePath) {
+  constructor({ filePath }: TPFilePath) {
+    this.filePath = filePath;
+  }
+
+  public async loadFile() {
     try {
-      const fileData = readFileSync(filePath);
+      const fileData = readFileSync(this.filePath);
 
       await this.jsZip.loadAsync(fileData);
 
       return [true, null];
     } catch (error) {
-      console.error(error);
-
       return [null, error];
     }
   }
 
-  public async getFileXML({ filePath }: TPFilePath) {
+  public async getFileXML({ filePath }: TPFilePath): Promise<[Node | null, null | unknown]> {
     try {
       const xmlString = await this.jsZip.file(filePath)?.async("string");
 
@@ -42,9 +46,11 @@ export default class PPTXTemplateFile {
         throw new Error(`JSZip ERROR: File ${filePath} not loaded`);
       }
     } catch (error) {
-      console.error(error);
-
       return [null, error];
     }
+  }
+
+  public getFiles() {
+    return this.jsZip.files;
   }
 }
