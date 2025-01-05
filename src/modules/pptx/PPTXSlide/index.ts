@@ -1,10 +1,18 @@
 import { XMLSerializer } from "xmldom";
 
+import { TPopulateData } from "../../../contracts/TemplateHandler";
+
 import PPTXTemplateFile from "../PPTXTemplateFile";
+import PPTXPlaceholder from "../PPTXPlaceholder";
 
 type TConstructor = {
   number: number,
   templateFile: PPTXTemplateFile
+}
+
+type TOpenedPlaceholder = {
+  nodes: Node[];
+  key: string;
 }
 
 export default class PPTXSlide {
@@ -12,6 +20,7 @@ export default class PPTXSlide {
   private number: number;
   private xmlDocument: Node | null = null;
   private xmlSerializer = new XMLSerializer();
+  private placeholders: PPTXPlaceholder[] = [];
 
   constructor({ number, templateFile }: TConstructor) {
     this.number = number;
@@ -34,68 +43,98 @@ export default class PPTXSlide {
     return [this.xmlDocument, null];
   }
 
-  public async getPlaceHolders() {
+  private async loadPlaceholders(): Promise<[true | null, unknown | null]> {
     const [xmlDocument, error] = await this.getXMLDocument();
+    const placeholders = [];
+    const openedPlaceholder: TOpenedPlaceholder = {
+      nodes: [],
+      key: ""
+    };
 
     if (error || !xmlDocument) {
       return [null, error];
     }
 
     const stack = [...Array.from(xmlDocument.childNodes)];
-    const nodesWithContent: Node[] = [];
 
     while (stack.length > 0) {
       const node = stack.pop();
 
       if (node?.hasChildNodes()) {
-        stack.push(...Array.from(node.childNodes));
+        stack.unshift(...Array.from(node.childNodes).reverse());
       } else {
-        nodesWithContent.push(node!);
+        const nodeText = node?.textContent;
+
+        if (nodeText && nodeText.trim().length > 0) {
+
+          const fullMatchRegex = /{([a-zA-Z0-9_]*?)}/g;
+          if (nodeText.match(fullMatchRegex)) {
+            const matchs = nodeText.matchAll(fullMatchRegex);
+
+            for (const match of matchs) {
+              const placeholder = new PPTXPlaceholder({
+                key: match[0],
+                nodes: [node!],
+              })
+              placeholders.push(placeholder);
+            }
+          }
+
+          const openingMatchRegex = /({[a-zA-Z0-9_]*?)$/g;
+          const openingMatch = nodeText.match(openingMatchRegex);
+          if (openingMatch) {
+            openedPlaceholder.key += openingMatch[0];
+            openedPlaceholder.nodes.push(node);
+          } else if (openedPlaceholder.key != "") {
+            const closeningMatchRegex = /^([a-zA-Z0-9_]*?})/g;
+            const closeingMatch = nodeText.match(closeningMatchRegex);
+            if (closeingMatch) {
+              openedPlaceholder.key += closeingMatch[0];
+              openedPlaceholder.nodes.push(node);
+
+              const placeholder = new PPTXPlaceholder(openedPlaceholder);
+              placeholders.push(placeholder);
+
+              openedPlaceholder.key = "";
+              openedPlaceholder.nodes = [];
+            } else {
+              openedPlaceholder.key += nodeText;
+              openedPlaceholder.nodes.push(node);
+            }
+          }
+        }
       }
     }
 
-    const placeHolders: string[] = [];
+    this.placeholders = placeholders;
 
-    nodesWithContent.forEach((nodeWithContent, index) => {
-      const nodeText = nodeWithContent?.textContent;
+    console.log(`
+                slide: ${this.number}
+                placeholders: ${this.placeholders.length}
+    `)
 
-      const fullMatchRegex = /{(.*?)}/g;
-      if (nodeText?.match(fullMatchRegex)) {
-        const matchs = nodeText?.matchAll(fullMatchRegex);
+    return [true, null];
+  }
 
-        for (const match of matchs) {
-          placeHolders.push(match[0]);
-        }
+  public async populate(data: TPopulateData) {
+    const [_result, error] = await this.loadPlaceholders();
+
+    if (error) {
+      return [null, error];
+    }
+
+    for (const key of Object.keys(data)) {
+      const placeholderKeyRegex = new RegExp(`{${key}}`);
+      const placeholder = this.placeholders
+        .find((p) => p.getKey().match(placeholderKeyRegex));
+
+      if (!placeholder) {
+        continue;
       }
 
-      const berrindMatchRegex = /^(\w*?})/g;
-      if (nodeText?.match(berrindMatchRegex)) {
-        const matchs = [...nodeText?.matchAll(berrindMatchRegex)];
+      placeholder.populate(data[key])
+    }
 
-        matchs.forEach((match) => {
-          let offset = 1;
-          let nodeWithOpenningTag = nodesWithContent[index + offset];
-
-          do {
-            if (nodeWithOpenningTag.textContent?.length || 0 > 0) {
-              placeHolders.push(nodeWithOpenningTag.textContent!);
-            }
-
-            offset++;
-
-            nodeWithOpenningTag = nodesWithContent[index + offset];
-          } while (
-            !!nodeWithOpenningTag
-            && !nodeWithOpenningTag.textContent?.match(/({#?\w*?)$/g)
-          )
-
-          placeHolders.push(match[0]);
-        });
-      }
-    });
-
-
-    console.log(placeHolders)
-    return [placeHolders, null];
+    return [true, null];
   }
 }

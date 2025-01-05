@@ -11,7 +11,9 @@ describe("Template File PPTX", () => {
   });
 
   it("should return slides", async () => {
-    await pptxTemplateHandler.populate();
+    await pptxTemplateHandler.populate({
+      price: 1.1
+    });
   });
 });
 

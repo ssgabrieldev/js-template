@@ -1,5 +1,5 @@
 import IPromiseRes from "../../../contracts/IPromiseRes";
-import TemplateHandler from "../../../contracts/TemplateHandler";
+import { TemplateHandler, TPopulateData } from "../../../contracts/TemplateHandler";
 
 import PPTXTemplateFile from "../PPTXTemplateFile";
 import PPTXSlide from "../PPTXSlide";
@@ -20,6 +20,8 @@ export default class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFil
   }
 
   private async loadSlides() {
+    const slides: PPTXSlide[] = [];
+
     Object.keys(this.templateFile.getFiles()).forEach((filePath) => {
       if (filePath.startsWith("ppt/slides/slide")) {
         const fileNameWithExtension = filePath.split("/").pop();
@@ -31,12 +33,14 @@ export default class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFil
           templateFile: this.templateFile
         });
 
-        this.slides.push(slide);
+        slides.push(slide);
       }
     });
+
+    this.slides = slides;
   }
 
-  public async populate(): Promise<IPromiseRes> {
+  public async populate(data: TPopulateData): Promise<IPromiseRes> {
     try {
       const [_result, error] = await this.templateFile.loadFile();
 
@@ -45,6 +49,10 @@ export default class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFil
       }
 
       await this.loadSlides();
+
+      for (const slide of this.slides) {
+        await slide.populate(data);
+      }
 
       return [true, null];
     } catch (error) {

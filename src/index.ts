@@ -11,19 +11,15 @@ const templateHandler = new PPTXTemplateHandler({
 });
 
 async function main() {
-  await templateHandler.populate();
+  await templateHandler.populate({
+    price: 1.2
+  });
 
-  const slides = templateHandler.getSlides();
+  console.log("==========================")
 
-  for (const slide of slides) {
-    const [placeholders, error] = await slide.getPlaceHolders();
-
-    if (error) {
-      return console.error(error);
-    }
-
-    // console.log(placeholders)
-  }
+  await templateHandler.populate({
+    price: 1.2
+  });
 }
 
 main();
