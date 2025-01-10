@@ -1,6 +1,6 @@
-import { XMLSerializer } from "xmldom";
-
 import { TPopulateData } from "../../../contracts/TemplateHandler";
+
+import IPromiseRes from "../../../contracts/IPromiseRes";
 
 import PPTXTemplateFile from "../PPTXTemplateFile";
 import PPTXPlaceholder from "../PPTXPlaceholder";
@@ -19,7 +19,6 @@ export default class PPTXSlide {
   private templateFile: PPTXTemplateFile;
   private number: number;
   private xmlDocument: Node | null = null;
-  private xmlSerializer = new XMLSerializer();
   private placeholders: PPTXPlaceholder[] = [];
 
   constructor({ number, templateFile }: TConstructor) {
@@ -27,7 +26,7 @@ export default class PPTXSlide {
     this.templateFile = templateFile;
   }
 
-  private async getXMLDocument(): Promise<[Node | null, unknown | null]> {
+  private async getXMLDocument(): IPromiseRes<Node> {
     if (!this.xmlDocument) {
       const [xml, error] = await this.templateFile.getFileXML({
         filePath: `ppt/slides/slide${this.number}.xml`
@@ -43,7 +42,7 @@ export default class PPTXSlide {
     return [this.xmlDocument, null];
   }
 
-  private async loadPlaceholders(): Promise<[true | null, unknown | null]> {
+  private async loadPlaceholders(): IPromiseRes<boolean> {
     const [xmlDocument, error] = await this.getXMLDocument();
     const placeholders = [];
     const openedPlaceholder: TOpenedPlaceholder = {
@@ -107,11 +106,6 @@ export default class PPTXSlide {
     }
 
     this.placeholders = placeholders;
-
-    console.log(`
-                slide: ${this.number}
-                placeholders: ${this.placeholders.length}
-    `)
 
     return [true, null];
   }

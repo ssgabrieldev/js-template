@@ -3,6 +3,7 @@ import { TemplateHandler, TPopulateData } from "../../../contracts/TemplateHandl
 
 import PPTXTemplateFile from "../PPTXTemplateFile";
 import PPTXSlide from "../PPTXSlide";
+import { ErrorSlideNotLoadded } from "../../error/ErrorSlideNotLoadded";
 
 type TContructor = {
   templateFile: PPTXTemplateFile;
@@ -11,7 +12,7 @@ type TContructor = {
 export default class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFile> {
   protected templateFile;
 
-  private slides: PPTXSlide[] = [];
+  private slides: PPTXSlide[] | null = null;
 
   constructor({ templateFile }: TContructor) {
     super();
@@ -19,39 +20,54 @@ export default class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFil
     this.templateFile = templateFile;
   }
 
-  private async loadSlides() {
+  private async loadSlides(): IPromiseRes<typeof this.slides> {
     const slides: PPTXSlide[] = [];
+    const [pptxXMLFiles, error] = await this.templateFile.getFiles();
 
-    Object.keys(this.templateFile.getFiles()).forEach((filePath) => {
+    if (error) {
+      return [null, error];
+    }
+
+    Object.keys(pptxXMLFiles!).forEach((filePath) => {
       if (filePath.startsWith("ppt/slides/slide")) {
         const fileNameWithExtension = filePath.split("/").pop();
-        const [fileName, _fileExtension] = fileNameWithExtension?.split(".") || [];
-        const slideNumber = Number(fileName.replace("slide", ""));
+        if (fileNameWithExtension) {
+          const [fileName, _fileExtension] = fileNameWithExtension?.split(".");
+          const slideNumber = Number(fileName.replace("slide", ""));
 
-        const slide = new PPTXSlide({
-          number: slideNumber,
-          templateFile: this.templateFile
-        });
+          const slide = new PPTXSlide({
+            number: slideNumber,
+            templateFile: this.templateFile
+          });
 
-        slides.push(slide);
+          slides.push(slide);
+        }
       }
     });
 
     this.slides = slides;
+
+    return [slides, null];
   }
 
-  public async populate(data: TPopulateData): Promise<IPromiseRes> {
+  public async populate(data: TPopulateData): IPromiseRes<boolean> {
     try {
-      const [_result, error] = await this.templateFile.loadFile();
+      const [slides, error] = await this.getSlides();
 
       if (error) {
-        throw error;
+        return [null, error];
       }
 
-      await this.loadSlides();
+      if (!slides) {
+        return [null, new ErrorSlideNotLoadded()];
+      }
 
-      for (const slide of this.slides) {
-        await slide.populate(data);
+      for (const slide of slides) {
+        const [_, error] = await slide.populate(data);
+
+        if (error) {
+          return [null, error];
+        }
       }
 
       return [true, null];
@@ -60,7 +76,17 @@ export default class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFil
     }
   }
 
-  public getSlides() {
-    return this.slides;
+  public async getSlides(): IPromiseRes<PPTXSlide[]> {
+    if (!this.slides) {
+      const [slides, error] = await this.loadSlides();
+
+      if (error) {
+        return [null, error];
+      }
+
+      this.slides = slides;
+    }
+
+    return [this.slides, null];
   }
 }

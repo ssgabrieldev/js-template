@@ -7,5 +7,5 @@ export type TPopulateData = {
 export abstract class TemplateHandler<TemplateFile> {
   protected abstract templateFile: TemplateFile;
 
-  public abstract populate(data: TPopulateData): Promise<IPromiseRes>;
+  public abstract populate(data: TPopulateData): IPromiseRes<boolean>;
 }

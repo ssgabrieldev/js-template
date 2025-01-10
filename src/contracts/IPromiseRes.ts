@@ -1,6 +1,6 @@
-type IPromiseRes = [
-  any,
+type IPromiseRes<T> = Promise<[
+  null | T,
   null | unknown
-];
+]>;
 
 export default IPromiseRes;

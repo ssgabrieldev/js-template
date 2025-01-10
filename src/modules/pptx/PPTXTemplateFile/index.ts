@@ -4,6 +4,7 @@ import { DOMParser } from "xmldom";
 import { readFileSync } from "fs";
 
 import { APPLICATION_XML } from "../../../consts";
+import IPromiseRes from "../../../contracts/IPromiseRes";
 
 type TPFilePath = {
   filePath: string
@@ -19,11 +20,13 @@ export default class PPTXTemplateFile {
     this.filePath = filePath;
   }
 
-  public async loadFile() {
+  private async loadFile(): IPromiseRes<boolean> {
     try {
-      const fileData = readFileSync(this.filePath);
+      if (Object.keys(this.jsZip.files).length == 0) {
+        const fileData = readFileSync(this.filePath);
 
-      await this.jsZip.loadAsync(fileData);
+        await this.jsZip.loadAsync(fileData);
+      }
 
       return [true, null];
     } catch (error) {
@@ -31,8 +34,14 @@ export default class PPTXTemplateFile {
     }
   }
 
-  public async getFileXML({ filePath }: TPFilePath): Promise<[Node | null, null | unknown]> {
+  public async getFileXML({ filePath }: TPFilePath): IPromiseRes<Node> {
     try {
+      const [_, error] = await this.loadFile();
+
+      if (error) {
+        return [null, error];
+      }
+
       const xmlString = await this.jsZip.file(filePath)?.async("string");
 
       if (xmlString) {
@@ -50,7 +59,17 @@ export default class PPTXTemplateFile {
     }
   }
 
-  public getFiles() {
-    return this.jsZip.files;
+  public async getFiles(): IPromiseRes<typeof this.jsZip.files> {
+    try {
+      const [_, error] = await this.loadFile();
+
+      if (error) {
+        return [null, error as Error];
+      }
+
+      return [this.jsZip.files, null];
+    } catch (error) {
+      return [null, error as Error];
+    }
   }
 }
