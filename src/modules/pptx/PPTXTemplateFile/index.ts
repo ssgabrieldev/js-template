@@ -64,12 +64,12 @@ export default class PPTXTemplateFile {
       const [_, error] = await this.loadFile();
 
       if (error) {
-        return [null, error as Error];
+        return [null, error];
       }
 
       return [this.jsZip.files, null];
     } catch (error) {
-      return [null, error as Error];
+      return [null, error];
     }
   }
 }
