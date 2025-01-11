@@ -71,7 +71,6 @@ export default class PPTXSlide {
       const node = stack.pop();
 
       if (!node) {
-        console.log("test")
         break;
       }
 
