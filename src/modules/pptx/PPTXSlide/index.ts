@@ -2,8 +2,11 @@ import { TPopulateData } from "../../../contracts/TemplateHandler";
 
 import IPromiseRes from "../../../contracts/IPromiseRes";
 
+import { ErrorPlaceholderNotLoadded } from "../../error/ErrorPlaceholderNotLoadded";
+
 import PPTXTemplateFile from "../PPTXTemplateFile";
 import PPTXPlaceholder from "../PPTXPlaceholder";
+import { ErrorCantGetFileXML } from "../../error/ErrorCantGetFileXML";
 
 type TConstructor = {
   number: number,
@@ -26,13 +29,17 @@ export default class PPTXSlide {
     this.templateFile = templateFile;
   }
 
+  private getFilePath() {
+    return `ppt/slides/slide${this.number}.xml`;
+  }
+
   private async getXMLDocument(): IPromiseRes<Node> {
     if (!this.xmlDocument) {
       const [xml, error] = await this.templateFile.getFileXML({
-        filePath: `ppt/slides/slide${this.number}.xml`
+        filePath: this.getFilePath()
       });
 
-      if (error || !xml) {
+      if (error) {
         return [null, error];
       }
 
@@ -42,16 +49,20 @@ export default class PPTXSlide {
     return [this.xmlDocument, null];
   }
 
-  private async loadPlaceholders(): IPromiseRes<boolean> {
+  private async loadPlaceholders(): IPromiseRes<PPTXPlaceholder[]> {
     const [xmlDocument, error] = await this.getXMLDocument();
-    const placeholders = [];
+    const placeholders: PPTXPlaceholder[] = [];
     const openedPlaceholder: TOpenedPlaceholder = {
       nodes: [],
       key: ""
     };
 
-    if (error || !xmlDocument) {
+    if (error) {
       return [null, error];
+    }
+
+    if (!xmlDocument) {
+      return [null, new ErrorCantGetFileXML({ file: this.getFilePath() })];
     }
 
     const stack = [...Array.from(xmlDocument.childNodes)];
@@ -59,10 +70,15 @@ export default class PPTXSlide {
     while (stack.length > 0) {
       const node = stack.pop();
 
-      if (node?.hasChildNodes()) {
+      if (!node) {
+        console.log("test")
+        break;
+      }
+
+      if (node.hasChildNodes()) {
         stack.unshift(...Array.from(node.childNodes).reverse());
       } else {
-        const nodeText = node?.textContent;
+        const nodeText = node.textContent;
 
         if (nodeText && nodeText.trim().length > 0) {
 
@@ -73,7 +89,7 @@ export default class PPTXSlide {
             for (const match of matchs) {
               const placeholder = new PPTXPlaceholder({
                 key: match[0],
-                nodes: [node!],
+                nodes: [node],
               })
               placeholders.push(placeholder);
             }
@@ -107,26 +123,30 @@ export default class PPTXSlide {
 
     this.placeholders = placeholders;
 
-    return [true, null];
+    return [this.placeholders, null];
   }
 
   public async populate(data: TPopulateData) {
-    const [_result, error] = await this.loadPlaceholders();
+    const [placeholders, error] = await this.loadPlaceholders();
 
     if (error) {
       return [null, error];
     }
 
+    if (!placeholders) {
+      return [null, new ErrorPlaceholderNotLoadded()];
+    }
+
     for (const key of Object.keys(data)) {
       const placeholderKeyRegex = new RegExp(`{${key}}`);
-      const placeholder = this.placeholders
-        .find((p) => p.getKey().match(placeholderKeyRegex));
+      const placeholder = placeholders
+        .find((placeholder) => placeholder.getKey().match(placeholderKeyRegex));
 
       if (!placeholder) {
         continue;
       }
 
-      placeholder.populate(data[key])
+      placeholder.populate(data[key]);
     }
 
     return [true, null];

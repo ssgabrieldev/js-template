@@ -5,6 +5,7 @@ import { readFileSync } from "fs";
 
 import { APPLICATION_XML } from "../../../consts";
 import IPromiseRes from "../../../contracts/IPromiseRes";
+import { ErrorCantGetFileXML } from "../../error/ErrorCantGetFileXML";
 
 type TPFilePath = {
   filePath: string
@@ -52,7 +53,7 @@ export default class PPTXTemplateFile {
 
         return [xmlDoc, null];
       } else {
-        throw new Error(`JSZip ERROR: File ${filePath} not loaded`);
+        return [null, new ErrorCantGetFileXML({ file: filePath })];
       }
     } catch (error) {
       return [null, error];
