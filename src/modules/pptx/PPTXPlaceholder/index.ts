@@ -39,19 +39,17 @@ export default class PPTXPlaceholder extends Placeholder {
     });
   }
 
-  public populate(data: any): void {
+  public populate(data: string): void {
     if (this.nodes.length > 0) {
       this.nodes.forEach((node) => {
-        node.textContent = node.textContent?.replaceAll(this.key, data)!;
+        if (node.textContent) {
+          node.textContent = node.textContent.replaceAll(this.key, data);
+        }
       });
     }
   }
 
   public getKey() {
     return this.key;
-  }
-
-  public getNodesContent() {
-    return this.nodes.map((node) => node.textContent)
   }
 }
