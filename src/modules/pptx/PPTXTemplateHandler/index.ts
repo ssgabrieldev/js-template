@@ -1,15 +1,16 @@
 import IPromiseRes from "../../../contracts/IPromiseRes";
-import { TemplateHandler, TPopulateData } from "../../../contracts/TemplateHandler";
+import { TemplateHandler, TPopulateData, TPSave } from "../../../contracts/TemplateHandler";
 
-import PPTXTemplateFile from "../PPTXTemplateFile";
-import PPTXSlide from "../PPTXSlide";
 import { ErrorSlideNotLoadded } from "../../error/ErrorSlideNotLoadded";
+
+import { PPTXTemplateFile } from "../PPTXTemplateFile";
+import { PPTXSlide } from "../PPTXSlide";
 
 type TContructor = {
   templateFile: PPTXTemplateFile;
 };
 
-export default class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFile> {
+export class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFile> {
   protected templateFile;
 
   private slides: PPTXSlide[] | null = null;
@@ -50,6 +51,20 @@ export default class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFil
     return [slides, null];
   }
 
+  private async getSlides(): IPromiseRes<PPTXSlide[]> {
+    if (!this.slides) {
+      const [slides, error] = await this.loadSlides();
+
+      if (error) {
+        return [null, error];
+      }
+
+      this.slides = slides;
+    }
+
+    return [this.slides, null];
+  }
+
   public async populate(data: TPopulateData): IPromiseRes<boolean> {
     try {
       const [slides, error] = await this.getSlides();
@@ -76,17 +91,7 @@ export default class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFil
     }
   }
 
-  public async getSlides(): IPromiseRes<PPTXSlide[]> {
-    if (!this.slides) {
-      const [slides, error] = await this.loadSlides();
-
-      if (error) {
-        return [null, error];
-      }
-
-      this.slides = slides;
-    }
-
-    return [this.slides, null];
+  public async save({ file }: TPSave): IPromiseRes<boolean> {
+      return [true, null];
   }
 }

@@ -1,7 +1,10 @@
 import { join } from "path";
-import PPTXTemplateHandler from ".";
-import PPTXTemplateFile from "../PPTXTemplateFile";
+
 import { ErrorSlideNotLoadded } from "../../error/ErrorSlideNotLoadded";
+
+import { PPTXTemplateFile } from "../PPTXTemplateFile";
+
+import { PPTXTemplateHandler } from ".";
 
 describe("Template File PPTX", () => {
   it("should every thing to be ok", async () => {

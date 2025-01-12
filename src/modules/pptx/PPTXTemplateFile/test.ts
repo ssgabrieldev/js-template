@@ -1,6 +1,6 @@
 import { join } from "path";
 
-import PPTXTemplateFile from ".";
+import { PPTXTemplateFile } from ".";
 
 describe("Template File PPTX", () => {
   it("should return a error when template not found", async () => {

@@ -5,7 +5,7 @@ type TContructor = {
   nodes: Node[];
 }
 
-export default class PPTXPlaceholder extends Placeholder {
+export class PPTXPlaceholder extends Placeholder {
   protected key;
   private nodes;
 

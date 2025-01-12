@@ -1,4 +1,4 @@
-import PPTXPlaceholder from ".";
+import { PPTXPlaceholder } from ".";
 
 describe("PPTXPlaceholder", () => {
   it("should getKey return key", () => {

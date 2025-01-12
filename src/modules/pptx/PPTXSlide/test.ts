@@ -3,9 +3,10 @@ import { join } from "path";
 import { ErrorPlaceholderNotLoadded } from "../../error/ErrorPlaceholderNotLoadded";
 import { ErrorCantGetFileXML } from "../../error/ErrorCantGetFileXML";
 
-import PPTXTemplateFile from "../PPTXTemplateFile";
+import { PPTXTemplateFile } from "../PPTXTemplateFile";
 
-import PPTXSlide from ".";
+import { PPTXSlide } from ".";
+
 
 describe("Slide", () => {
   it("should populate works", async () => {

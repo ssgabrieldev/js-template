@@ -3,10 +3,10 @@ import { TPopulateData } from "../../../contracts/TemplateHandler";
 import IPromiseRes from "../../../contracts/IPromiseRes";
 
 import { ErrorPlaceholderNotLoadded } from "../../error/ErrorPlaceholderNotLoadded";
-
-import PPTXTemplateFile from "../PPTXTemplateFile";
-import PPTXPlaceholder from "../PPTXPlaceholder";
 import { ErrorCantGetFileXML } from "../../error/ErrorCantGetFileXML";
+
+import { PPTXTemplateFile } from "../PPTXTemplateFile";
+import { PPTXPlaceholder } from "../PPTXPlaceholder";
 
 type TConstructor = {
   number: number,
@@ -18,7 +18,7 @@ type TOpenedPlaceholder = {
   key: string;
 }
 
-export default class PPTXSlide {
+export class PPTXSlide {
   private templateFile: PPTXTemplateFile;
   private number: number;
   private xmlDocument: Node | null = null;

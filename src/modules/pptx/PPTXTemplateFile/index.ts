@@ -11,7 +11,7 @@ type TPFilePath = {
   filePath: string
 }
 
-export default class PPTXTemplateFile {
+export class PPTXTemplateFile {
   private filePath: string;
 
   private jsZip = new JSZip();
