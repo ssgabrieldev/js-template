@@ -1,7 +1,7 @@
 import { join } from "path";
 
-import PPTXTemplateHandler from "./modules/pptx/PPTXTemplateHandler";
-import PPTXTemplateFile from "./modules/pptx/PPTXTemplateFile";
+import { PPTXTemplateHandler } from "./modules/pptx/PPTXTemplateHandler";
+import { PPTXTemplateFile } from "./modules/pptx/PPTXTemplateFile";
 
 const templateFile = new PPTXTemplateFile({
   filePath: join(__dirname, "../assets/template.pptx")
