@@ -1,17 +1,21 @@
 import JSZip from "jszip";
 import { DOMParser } from "xmldom";
 
-import { readFileSync } from "fs";
+import { mkdirSync, readFileSync, writeFile, writeFileSync } from "fs";
+
+import { TemplateFile, TPSave } from "../../../contracts/TemplateFile";
+import IPromiseRes from "../../../contracts/IPromiseRes";
+
+import { ErrorCantGetFileXML } from "../../error/ErrorCantGetFileXML";
 
 import { APPLICATION_XML } from "../../../consts";
-import IPromiseRes from "../../../contracts/IPromiseRes";
-import { ErrorCantGetFileXML } from "../../error/ErrorCantGetFileXML";
+import path, { dirname } from "path";
 
 type TPFilePath = {
   filePath: string
 }
 
-export class PPTXTemplateFile {
+export class PPTXTemplateFile implements TemplateFile {
   private filePath: string;
 
   private jsZip = new JSZip();
@@ -69,6 +73,26 @@ export class PPTXTemplateFile {
       }
 
       return [this.jsZip.files, null];
+    } catch (error) {
+      return [null, error];
+    }
+  }
+
+  public async save({ filePath }: TPSave): IPromiseRes<boolean> {
+    try {
+      const [_result, error] = await this.loadFile();
+
+      if (error) {
+        return [null, error];
+      }
+
+      const dirPath = dirname(filePath);
+      mkdirSync(dirPath, { recursive: true });
+
+      const fileBuffer = await this.jsZip.generateAsync({ type: "nodebuffer" });
+      writeFileSync(filePath, fileBuffer);
+
+      return [true, null];
     } catch (error) {
       return [null, error];
     }
