@@ -1,7 +1,8 @@
 import JSZip from "jszip";
 import { DOMParser } from "xmldom";
 
-import { mkdirSync, readFileSync, writeFile, writeFileSync } from "fs";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
+import { dirname } from "path";
 
 import { TemplateFile, TPSave } from "../../../contracts/TemplateFile";
 import IPromiseRes from "../../../contracts/IPromiseRes";
@@ -9,7 +10,6 @@ import IPromiseRes from "../../../contracts/IPromiseRes";
 import { ErrorCantGetFileXML } from "../../error/ErrorCantGetFileXML";
 
 import { APPLICATION_XML } from "../../../consts";
-import path, { dirname } from "path";
 
 type TPFilePath = {
   filePath: string
