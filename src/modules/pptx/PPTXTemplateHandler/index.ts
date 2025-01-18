@@ -91,7 +91,17 @@ export class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFile> {
     }
   }
 
-  public async save({ file }: TPSave): IPromiseRes<boolean> {
+  public async save({ filePath }: TPSave): IPromiseRes<boolean> {
+    try {
+      const [_result, error] = await this.templateFile.save({ filePath });
+
+      if (error) {
+        return [null, error];
+      }
+
       return [true, null];
+    } catch(error) {
+      return [null, error];
+    }
   }
 }

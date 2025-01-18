@@ -7,9 +7,11 @@ import { PPTXTemplateFile } from "../PPTXTemplateFile";
 import { PPTXTemplateHandler } from ".";
 
 describe("Template File PPTX", () => {
+  const templatePath = join(__dirname, "..", "..", "..", "..", "assets", "template.pptx");
+
   it("should every thing to be ok", async () => {
     const templateFile = new PPTXTemplateFile({
-      filePath: join(__dirname, "..", "..", "..", "..", "assets", "template.pptx")
+      filePath: templatePath
     });
     const pptxTemplateHandler = new PPTXTemplateHandler({
       templateFile
@@ -25,7 +27,7 @@ describe("Template File PPTX", () => {
 
   it("should fail to load slides of invalid template", async () => {
     const templateFile = new PPTXTemplateFile({
-      filePath: join(__dirname, "..", "..", "..", "..", "assets", "template-error.pptx")
+      filePath: "foo.pptx"
     });
     const pptxTemplateHandler = new PPTXTemplateHandler({
       templateFile
@@ -41,7 +43,7 @@ describe("Template File PPTX", () => {
 
   it("should return ErrorSlideNotLoadded if slides are not loadded", async () => {
     const templateFile = new PPTXTemplateFile({
-      filePath: join(__dirname, "..", "..", "..", "..", "assets", "template.pptx")
+      filePath: templatePath
     });
     const pptxTemplateHandler = new PPTXTemplateHandler({
       templateFile
@@ -63,7 +65,7 @@ describe("Template File PPTX", () => {
 
   it("should return same error of slide populate", async () => {
     const templateFile = new PPTXTemplateFile({
-      filePath: join(__dirname, "..", "..", "..", "..", "assets", "template.pptx")
+      filePath: templatePath
     });
     const pptxTemplateHandler = new PPTXTemplateHandler({
       templateFile
@@ -87,7 +89,7 @@ describe("Template File PPTX", () => {
 
   it("should return error", async () => {
     const templateFile = new PPTXTemplateFile({
-      filePath: join(__dirname, "..", "..", "..", "..", "assets", "template.pptx")
+      filePath: templatePath
     });
     const pptxTemplateHandler = new PPTXTemplateHandler({
       templateFile
@@ -107,6 +109,70 @@ describe("Template File PPTX", () => {
   
     expect(result).toBeNull();
     expect(error).toBeTruthy();
+  });
+
+  it ("should save file", async () => {
+    const templateFilePPTX = new PPTXTemplateFile({
+      filePath: templatePath
+    });
+    const pptxTemplateHandler = new PPTXTemplateHandler({
+      templateFile: templateFilePPTX
+    });
+
+    const [result, error] = await pptxTemplateHandler.save({
+      filePath: join(__dirname, "..", "..", "..", "..", "assets", "temp", "template.pptx")
+    });
+
+    expect(result).toBe(true);
+    expect(error).toBeNull();
+  });
+
+  it ("should save return same error as templateFile.save", async () => {
+    const templateFilePPTX = new PPTXTemplateFile({
+      filePath: "foo.pptx"
+    });
+    const pptxTemplateHandler = new PPTXTemplateHandler({
+      templateFile: templateFilePPTX
+    });
+  
+    const errorTemplateFileSave = new Error();
+  
+    (templateFilePPTX as any).save = jest.fn(
+      (templateFilePPTX as any).save
+    ).mockImplementationOnce(() => {
+      return [null, errorTemplateFileSave];
+    });
+  
+    const [result, error] = await pptxTemplateHandler.save({
+      filePath: "/temp/template.pptx"
+    });
+  
+    expect(result).toBeNull();
+    expect(error).toBe(errorTemplateFileSave);
+  });
+  
+  it ("should save return a error", async () => {
+    const templateFilePPTX = new PPTXTemplateFile({
+      filePath: "foo.pptx"
+    });
+    const pptxTemplateHandler = new PPTXTemplateHandler({
+      templateFile: templateFilePPTX
+    });
+  
+    const randomError = new Error();
+  
+    (templateFilePPTX as any).save = jest.fn(
+      (templateFilePPTX as any).save
+    ).mockImplementationOnce(() => {
+      throw randomError;
+    });
+  
+    const [result, error] = await pptxTemplateHandler.save({
+      filePath: "/temp/template.pptx"
+    });
+  
+    expect(result).toBeNull();
+    expect(error).toBe(randomError);
   });
 });
 
