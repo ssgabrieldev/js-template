@@ -125,6 +125,23 @@ export class PPTXSlide {
     return [this.placeholders, null];
   }
 
+  private async save() {
+    const [content, error] = await this.getXMLDocument();
+
+    if (error) {
+      return [null, error];
+    }
+
+    if (content) {
+      this.templateFile.writeXML({
+        filePath: this.getFilePath(),
+        content: content
+      });
+    }
+
+    return [true, null];
+  }
+
   public async populate(data: TPopulateData) {
     const [placeholders, error] = await this.loadPlaceholders();
 
@@ -137,15 +154,22 @@ export class PPTXSlide {
     }
 
     for (const key of Object.keys(data)) {
-      const placeholderKeyRegex = new RegExp(`{${key}}`);
+      const placeholderKeyRegex = `{${key}}`;
       const placeholder = placeholders
-        .find((placeholder) => placeholder.getKey().match(placeholderKeyRegex));
+        .find((placeholder) => {
+          return placeholder.getKey().match(placeholderKeyRegex);
+        });
 
       if (!placeholder) {
         continue;
       }
 
       placeholder.populate(data[key]);
+      const [_result, error] = await this.save();
+
+      if (error) {
+        return [null, error];
+      }
     }
 
     return [true, null];

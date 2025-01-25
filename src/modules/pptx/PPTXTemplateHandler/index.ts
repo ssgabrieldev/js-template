@@ -65,7 +65,7 @@ export class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFile> {
     return [this.slides, null];
   }
 
-  public async populate(data: TPopulateData): IPromiseRes<boolean> {
+  protected async populate(data: TPopulateData): IPromiseRes<boolean> {
     try {
       const [slides, error] = await this.getSlides();
 
@@ -91,9 +91,15 @@ export class PPTXTemplateHandler extends TemplateHandler<PPTXTemplateFile> {
     }
   }
 
-  public async save({ filePath }: TPSave): IPromiseRes<boolean> {
+  public async save({ filePath, data }: TPSave): IPromiseRes<boolean> {
     try {
-      const [_result, error] = await this.templateFile.save({ filePath });
+      const [_resultPopulate, errorPopulate] = await this.populate(data);
+
+      if (errorPopulate) {
+        return [null, errorPopulate];
+      }
+
+      const [_resultSave, error] = await this.templateFile.save({ filePath });
 
       if (error) {
         return [null, error];

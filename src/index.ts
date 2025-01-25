@@ -11,15 +11,13 @@ const templateHandler = new PPTXTemplateHandler({
 });
 
 async function main() {
-  await templateHandler.populate({
-    price: 1.2
-  });
-
-  console.log("==========================")
-
-  await templateHandler.populate({
-    price: 1.2
-  });
+  await templateHandler.save({
+    filePath: join(__dirname, "../assets/temp/template.pptx"),
+    data: {
+      title: "Teste",
+      name: "Paulo Gabriel Santana Silva"
+    }
+  })
 }
 
 main();

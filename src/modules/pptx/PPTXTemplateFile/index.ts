@@ -1,5 +1,7 @@
 import JSZip from "jszip";
 import { DOMParser } from "xmldom";
+import { XMLSerializer } from "xmldom";
+
 
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname } from "path";
@@ -13,13 +15,19 @@ import { APPLICATION_XML } from "../../../consts";
 
 type TPFilePath = {
   filePath: string
-}
+};
+
+type TPWriteXML = {
+  filePath: string,
+  content: Node
+};
 
 export class PPTXTemplateFile implements TemplateFile {
   private filePath: string;
 
   private jsZip = new JSZip();
   private domParser = new DOMParser();
+  private xmlSelializer = new XMLSerializer();
 
   constructor({ filePath }: TPFilePath) {
     this.filePath = filePath;
@@ -76,6 +84,10 @@ export class PPTXTemplateFile implements TemplateFile {
     } catch (error) {
       return [null, error];
     }
+  }
+
+  public async writeXML({filePath, content}: TPWriteXML) {
+    this.jsZip.file(filePath, this.xmlSelializer.serializeToString(content));
   }
 
   public async save({ filePath }: TPSave): IPromiseRes<boolean> {

@@ -5,12 +5,13 @@ export type TPopulateData = {
 };
 
 export type TPSave = {
-  filePath: string
+  filePath: string,
+  data: TPopulateData
 }
 
 export abstract class TemplateHandler<TemplateFile> {
   protected abstract templateFile: TemplateFile;
 
-  public abstract populate(data: TPopulateData): IPromiseRes<boolean>;
-  public abstract save({ filePath }: TPSave): IPromiseRes<boolean>;
+  protected abstract populate(data: TPopulateData): IPromiseRes<boolean>;
+  public abstract save({ filePath, data }: TPSave): IPromiseRes<boolean>;
 }
