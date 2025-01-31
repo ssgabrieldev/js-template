@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/mfussenegger/dapconfig-schema/master/dapconfig-schema.json",
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Typescript",
+      "request": "launch",
+      "program": "${workspaceFolder}/dist/index.js",
+      "cwd": "${workspaceFolder}",
+      "sourceMaps": true,
+      "type": "pwa-node",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ],
+      "skipFiles": [
+        "node_modules/**"
+      ],
+      "preLaunchTask": "npm run build"
+    }
+  ]
+}
